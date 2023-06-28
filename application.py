@@ -88,6 +88,14 @@ class Application:
         button = ttk.Button(frame, text='Select', command=self.open_file)
         button.place(relx=0.1 + ENTRY_WIDTH, rely=0.25, relwidth=ENTRY_WIDTH, relheight=0.5)
 
+    def recalculate_symbol_width(self, e):
+        height = self.height_entry.get()
+        if height == '':
+            return
+        self.converter.symbol_height = int(height)
+        self.converter.recalculate_symbol_width()
+        set_symbols_count(self.width_entry, str(self.converter.symbol_width))
+
     def _make_pict_size_frame(self):
         frame = ttk.Frame(self.root, bg=LIGHT_BLUE, bd=5)
         frame.place(relx=0.15, rely=0.4, relwidth=0.7, relheight=0.35)
@@ -108,7 +116,8 @@ class Application:
                           relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
         self.height_entry = ttk.Entry(frame, bg='white', font=30)
-        self.height_entry.bind('<KeyPress>', _only_int_selector)
+        self.height_entry.bind('<Key>', _only_int_selector)
+        self.height_entry.bind('<Key>', self.recalculate_symbol_width, True)
         self.height_entry.place(relx=0.5, rely=ELEMENTS_SHIFT * 2 + ENTRY_HEIGHT,
                                 relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 

@@ -34,7 +34,6 @@ class AsciiConverter:
                 im.load()
                 self.pil_image = im
                 self.image_array = np.asarray(im)
-                self.file_name = file_name
                 self.file_type = file_name.split('.')[-1]
                 self.symbol_height = len(self.image_array)
                 self.pixel_height = self.symbol_height
@@ -51,6 +50,7 @@ class AsciiConverter:
         else:
             if len(self.image_array) == 0 or len(self.image_array[0]) == 0 or len(self.image_array[0][0]) < 3:
                 return False, 'in the wrong format!'
+            self.file_name = file_name
             return True, 'successful'
 
     def get_output_file_name(self):
@@ -75,6 +75,16 @@ class AsciiConverter:
                     symbol = get_symbol_by_brightness(self.grayscale_image[line][column])
                     text_line.append(symbol)
                 f.write(''.join(text_line) + '\n')
+
+    def recalculate_symbol_width(self):
+        if self.file_name is None:
+            return
+        self.symbol_width = int(self.pixel_height / self.pixel_width) * self.symbol_height * 8 // 15
+
+    def recalculate_symbol_height(self):
+        if self.file_name is None:
+            return
+        self.symbol_height = int(self.pixel_width / self.pixel_height) * self.symbol_width * 15 // 8
 
     def _convert_to_grayscale(self):
         self.grayscale_image = []
