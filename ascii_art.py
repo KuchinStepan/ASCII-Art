@@ -79,12 +79,12 @@ class AsciiConverter:
     def recalculate_symbol_width(self):
         if self.file_name is None:
             return
-        self.symbol_width = int(self.pixel_height / self.pixel_width) * self.symbol_height * 8 // 15
+        self.symbol_width = int(self.pixel_height / self.pixel_width * self.symbol_height * 9 / 8)
 
     def recalculate_symbol_height(self):
         if self.file_name is None:
             return
-        self.symbol_height = int(self.pixel_width / self.pixel_height) * self.symbol_width * 15 // 8
+        self.symbol_height = int(self.pixel_width / self.pixel_height * self.symbol_width * 8 / 9)
 
     def _convert_to_grayscale(self):
         self.grayscale_image = []

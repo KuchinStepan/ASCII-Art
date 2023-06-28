@@ -43,6 +43,7 @@ class Application:
         self._make_file_open_frame()
         self._load_label = None
         self._set_load_result_text('Image is not selected')
+        self.last_entry_type = None
 
     def _set_load_result_text(self, text, colour=BLACK):
         if self._load_label is not None:
@@ -78,6 +79,29 @@ class Application:
         self.converter.symbol_height = int(self.height_entry.get())
         self.converter.convert()
 
+    def _width_entry_last(self, e):
+        self.last_entry_type = 'width'
+
+    def _height_entry_last(self, e):
+        self.last_entry_type = 'height'
+
+    def synchronize_size(self):
+        if self.last_entry_type is None:
+            return
+        elif self.last_entry_type == 'height':
+            height = self.height_entry.get()
+            if height == '':
+                return
+            self.converter.symbol_height = int(height)
+            self.converter.recalculate_symbol_width()
+        else:
+            width = self.width_entry.get()
+            if width == '':
+                return
+            self.converter.symbol_width = int(width)
+            self.converter.recalculate_symbol_height()
+        self._update_width_and_height()
+
     def _make_file_open_frame(self):
         frame = ttk.Frame(self.root, bg=LIGHT_BLUE, bd=5)
         frame.place(relx=0.15, rely=0.1, relwidth=0.7, relheight=0.15)
@@ -87,14 +111,6 @@ class Application:
 
         button = ttk.Button(frame, text='Select', command=self.open_file)
         button.place(relx=0.1 + ENTRY_WIDTH, rely=0.25, relwidth=ENTRY_WIDTH, relheight=0.5)
-
-    def recalculate_symbol_width(self, e):
-        height = self.height_entry.get()
-        if height == '':
-            return
-        self.converter.symbol_height = int(height)
-        self.converter.recalculate_symbol_width()
-        set_symbols_count(self.width_entry, str(self.converter.symbol_width))
 
     def _make_pict_size_frame(self):
         frame = ttk.Frame(self.root, bg=LIGHT_BLUE, bd=5)
@@ -106,7 +122,8 @@ class Application:
                          relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
         self.width_entry = ttk.Entry(frame, bg='white', font=30)
-        self.width_entry.bind('<KeyPress>', _only_int_selector)
+        self.width_entry.bind('<Key>', _only_int_selector)
+        self.width_entry.bind('<Key>', self._width_entry_last, True)
         self.width_entry.place(relx=0.1 + ENTRY_WIDTH, rely=ELEMENTS_SHIFT,
                                relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
@@ -117,12 +134,16 @@ class Application:
 
         self.height_entry = ttk.Entry(frame, bg='white', font=30)
         self.height_entry.bind('<Key>', _only_int_selector)
-        self.height_entry.bind('<Key>', self.recalculate_symbol_width, True)
+        self.height_entry.bind('<Key>', self._height_entry_last, True)
         self.height_entry.place(relx=0.5, rely=ELEMENTS_SHIFT * 2 + ENTRY_HEIGHT,
                                 relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
+        sync_button = ttk.Button(frame, text='Synchronize', command=self.synchronize_size)
+        sync_button.place(relx=0.2, rely=ELEMENTS_SHIFT * 3 + ENTRY_HEIGHT * 2,
+                          relwidth=ENTRY_WIDTH - 0.2, relheight=ENTRY_HEIGHT)
+
         button = ttk.Button(frame, text='Convert to txt', command=self._convert)
-        button.place(relx=ENTRY_WIDTH / 2 + 0.1, rely=ELEMENTS_SHIFT * 3 + ENTRY_HEIGHT * 2,
+        button.place(relx=ENTRY_WIDTH / 2 + 0.3, rely=ELEMENTS_SHIFT * 3 + ENTRY_HEIGHT * 2,
                      relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
         self._update_width_and_height()
