@@ -74,6 +74,8 @@ class Application:
                 self._set_load_result_text(f'Image {short_name} {message}', RED)
 
     def _convert(self):
+        self.converter.symbol_width = int(self.width_entry.get())
+        self.converter.symbol_height = int(self.height_entry.get())
         self.converter.convert()
 
     def _make_file_open_frame(self):
