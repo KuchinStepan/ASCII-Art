@@ -42,14 +42,27 @@ class Application:
         self.file_name = None
         self._make_file_open_frame()
         self._load_label = None
+        self._convert_text_label = None
         self._set_load_result_text('Image is not selected')
         self.last_entry_type = None
 
     def _set_load_result_text(self, text, colour=BLACK):
         if self._load_label is not None:
             self._load_label.destroy()
-        self._load_label = self._load_label = ttk.Label(self.root, text=text, bg=WHITE, fg=colour, font=40)
+        self._load_label = ttk.Label(self.root, text=text, bg=WHITE, fg=colour, font=40)
         self._load_label.place(relx=0.15, rely=0.25, relwidth=0.7, relheight=0.1)
+
+    def _set_convert_result_text(self, text=None):
+        if self._convert_text_label is not None:
+            self._convert_text_label.destroy()
+        if text == '':
+            return
+        short_name = self.converter.get_output_file_name().split('/')[-1]
+        if len(short_name) > 15:
+            short_name = short_name[:13] + '...'
+        text = f'Successfully converted to {short_name}'
+        self._convert_text_label = ttk.Label(self.root, text=text, bg=WHITE, font=40)
+        self._convert_text_label.place(relx=0.15, rely=0.75, relwidth=0.7, relheight=0.1)
 
     def _update_width_and_height(self):
         set_symbols_count(self.height_entry, str(self.converter.symbol_height))
@@ -71,6 +84,7 @@ class Application:
             if successful:
                 self._set_load_result_text(f'Image {short_name} selected')
                 self._update_width_and_height()
+                self._set_convert_result_text('')
             else:
                 self._set_load_result_text(f'Image {short_name} {message}', RED)
 
@@ -78,6 +92,7 @@ class Application:
         self.converter.symbol_width = int(self.width_entry.get())
         self.converter.symbol_height = int(self.height_entry.get())
         self.converter.convert()
+        self._set_convert_result_text()
 
     def _width_entry_last(self, e):
         self.last_entry_type = 'width'
@@ -85,7 +100,7 @@ class Application:
     def _height_entry_last(self, e):
         self.last_entry_type = 'height'
 
-    def synchronize_size(self):
+    def _synchronize_size(self):
         if self.last_entry_type is None:
             return
         elif self.last_entry_type == 'height':
@@ -138,7 +153,7 @@ class Application:
         self.height_entry.place(relx=0.5, rely=ELEMENTS_SHIFT * 2 + ENTRY_HEIGHT,
                                 relwidth=ENTRY_WIDTH, relheight=ENTRY_HEIGHT)
 
-        sync_button = ttk.Button(frame, text='Synchronize', command=self.synchronize_size)
+        sync_button = ttk.Button(frame, text='Synchronize', command=self._synchronize_size)
         sync_button.place(relx=0.2, rely=ELEMENTS_SHIFT * 3 + ENTRY_HEIGHT * 2,
                           relwidth=ENTRY_WIDTH - 0.2, relheight=ENTRY_HEIGHT)
 

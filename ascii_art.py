@@ -4,7 +4,7 @@ import numpy as np
 
 
 COMMON_SYMBOL_COUNT = 60
-ALPHABET = '  .-;?##@'
+ALPHABET = '  .-;?#@@'
 
 
 def grayscale_pixel(pixel):
