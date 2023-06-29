@@ -81,6 +81,8 @@ class AsciiConverter:
                     symbol = get_symbol_by_brightness(self.grayscale_image[line][column])
                     text_line.append(symbol)
                 f.write(''.join(text_line) + '\n')
+        # os.startfile('/'.join(self.output_file_name.split('/')[:-1]) + '/')
+        os.startfile(self.output_file_name)
 
     def recalculate_symbol_width(self):
         if self.file_name is None:
