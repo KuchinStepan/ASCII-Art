@@ -1,6 +1,7 @@
 import PIL
 from PIL import Image
 import numpy as np
+import os
 
 
 COMMON_SYMBOL_COUNT = 60
@@ -27,6 +28,7 @@ class AsciiConverter:
         self.pixel_height = 0
         self.grayscale_image = []
         self.pil_image = None
+        self.output_file_name = None
 
     def load_image(self, file_name):
         try:
@@ -53,22 +55,26 @@ class AsciiConverter:
             self.file_name = file_name
             return True, 'successful'
 
-    def get_output_file_name(self):
+    def _set_output_file_name(self):
         folders = self.file_name.split('/')[:-1]
         path = '/'.join(folders)
         short_name = self.file_name.split('/')[-1].split('.')[0]
-        # Написать добавления файла, если есть с таким именем
-        return path + '/' + short_name + '.txt'
+        file_name = path + '/' + short_name + '.txt'
+        i = 1
+        while os.path.exists(file_name):
+            file_name = path + '/' + short_name + f'({i})' + '.txt'
+            i += 1
+        self.output_file_name = file_name
 
     def convert(self):
+        self._set_output_file_name()
         with Image.open(self.file_name) as im:
             im.load()
             self.pil_image = im
             self.pil_image = self.pil_image.resize((self.symbol_width, self.symbol_height))
             self.image_array = np.asarray(self.pil_image)
         self._convert_to_grayscale()
-        output_file = self.get_output_file_name()
-        with open(output_file, 'w') as f:
+        with open(self.output_file_name, 'w') as f:
             for line in range(self.symbol_height):
                 text_line = []
                 for column in range(self.symbol_width):

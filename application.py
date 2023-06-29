@@ -57,7 +57,7 @@ class Application:
             self._convert_text_label.destroy()
         if text == '':
             return
-        short_name = self.converter.get_output_file_name().split('/')[-1]
+        short_name = self.converter.output_file_name.split('/')[-1]
         if len(short_name) > 15:
             short_name = short_name[:13] + '...'
         text = f'Successfully converted to {short_name}'
