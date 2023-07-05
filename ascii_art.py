@@ -71,8 +71,8 @@ class AsciiConverter:
         with Image.open(self.file_name) as im:
             im.load()
             self.pil_image = im
-            self.pil_image = self.pil_image.resize((self.symbol_width, self.symbol_height))
             self.image_array = np.asarray(self.pil_image)
+            self._reduce_image_array()
         self._convert_to_grayscale()
         with open(self.output_file_name, 'w') as f:
             for line in range(self.symbol_height):
@@ -83,6 +83,38 @@ class AsciiConverter:
                 f.write(''.join(text_line) + '\n')
         # os.startfile('/'.join(self.output_file_name.split('/')[:-1]) + '/')
         os.startfile(self.output_file_name)
+
+    def _reduce_image_array(self):
+        block_width = int(self.pixel_width / self.symbol_width) + 1
+        block_height = int(self.pixel_height / self.symbol_height) + 1
+        if block_height == 1 or block_width == 1:
+            return
+
+        new_array = []
+        for y in range(self.symbol_height):
+            row = []
+            for x in range(self.symbol_width):
+                sum_pixel = [0, 0, 0]
+                pixel_count = 0
+                for i in range(block_width):
+                    current_x = x * block_width + i
+                    if current_x >= len(self.image_array[0]):
+                        break
+                    for j in range(block_height):
+                        current_y = y * block_height + j
+                        if current_y >= len(self.image_array):
+                            break
+                        pixel_count += 1
+                        for c in range(3):
+                            sum_pixel[c] += self.image_array[current_y][current_x][c]
+                if pixel_count != 0:
+                    avg_pixel = [sum_pixel[0] // pixel_count, sum_pixel[1] // pixel_count,
+                                 sum_pixel[2] // pixel_count]
+                    row.append(avg_pixel)
+                else:
+                    row.append([255, 255, 255])
+            new_array.append(row)
+        self.image_array = new_array
 
     def recalculate_symbol_width(self):
         if self.file_name is None:
