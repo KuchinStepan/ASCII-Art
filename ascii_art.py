@@ -17,6 +17,11 @@ def get_symbol_by_brightness(brightness):
     return symbol
 
 
+def _are_same_scales(pixel_width, pixel_height, symbol_width, symbol_height):
+    result = (pixel_width / symbol_width) * (pixel_height / symbol_height)
+    return abs(result - 1) < 0.2
+
+
 class AsciiConverter:
     def __init__(self):
         self.file_name = None
@@ -85,6 +90,8 @@ class AsciiConverter:
         os.startfile(self.output_file_name)
 
     def _reduce_image_array(self):
+        if _are_same_scales(self.pixel_width, self.pixel_height, self.symbol_width, self.symbol_height):
+            return
         block_width = int(self.pixel_width / self.symbol_width) + 1
         block_height = int(self.pixel_height / self.symbol_height) + 1
         if block_height == 1 or block_width == 1:
@@ -137,8 +144,9 @@ class AsciiConverter:
 
     def _norm_size(self):
         scale = min(self.symbol_height, self.symbol_width) // COMMON_SYMBOL_COUNT
-        self.symbol_width = self.symbol_width // scale * 15 // 8
-        self.symbol_height = self.symbol_height // scale
+        if scale < 1 and scale != 0:
+            self.symbol_width = self.symbol_width // scale * 15 // 8
+            self.symbol_height = self.symbol_height // scale
 
 
 if __name__ == '__main__':

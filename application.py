@@ -107,14 +107,16 @@ class Application:
             height = self.height_entry.get()
             if height == '':
                 return
-            self.converter.symbol_height = int(height)
-            self.converter.recalculate_symbol_width()
+            if int(height) > 0:
+                self.converter.symbol_height = int(height)
+                self.converter.recalculate_symbol_width()
         else:
             width = self.width_entry.get()
             if width == '':
                 return
-            self.converter.symbol_width = int(width)
-            self.converter.recalculate_symbol_height()
+            if int(width) > 0:
+                self.converter.symbol_width = int(width)
+                self.converter.recalculate_symbol_height()
         self._update_width_and_height()
 
     def _make_file_open_frame(self):
