@@ -1,11 +1,18 @@
-import PIL
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
+import colorama
 import numpy as np
 import os
 
 
+colorama.init(autoreset=True)
+
+
 COMMON_SYMBOL_COUNT = 60
 ALPHABET = '  .-;?#@@'
+ANSI_COLOURS = {(255, 0, 0): colorama.Fore.RED, (0, 255, 0): colorama.Fore.GREEN, (0, 0, 255): colorama.Fore.BLUE,
+                (1, 1, 1): colorama.Fore.BLACK, (230, 230, 230): colorama.Fore.WHITE,
+                (255, 255, 0): colorama.Fore.YELLOW, (0, 204, 204): colorama.Fore.CYAN,
+                (204, 0, 204): colorama.Fore.MAGENTA}
 
 
 def grayscale_pixel(pixel):
@@ -15,6 +22,27 @@ def grayscale_pixel(pixel):
 def get_symbol_by_brightness(brightness):
     symbol = ALPHABET[::-1][int(brightness * len(ALPHABET) - 1e-9)]
     return symbol
+
+
+def get_vectors_difference(a, b):
+    return ((a[0] - b[0])**2 + (a[1] - b[1])**2 + (a[2] - b[2])**2) ** 0.5
+
+
+def get_ansi_colour_by_pixel(pixel):
+    symbol_colour = colorama.Fore.WHITE
+    min_value = 10000000
+    for colour in ANSI_COLOURS.keys():
+        value = get_vectors_difference(colour, pixel)
+        if value < min_value:
+            min_value = value
+            symbol_colour = ANSI_COLOURS[colour]
+    return symbol_colour
+
+
+def get_coloured_symbol(pixel):
+    symbol = get_symbol_by_brightness(grayscale_pixel(pixel))
+    colour = get_ansi_colour_by_pixel(pixel)
+    return colour + symbol
 
 
 def _are_same_scales(pixel_width, pixel_height, symbol_width, symbol_height):
@@ -34,6 +62,7 @@ class AsciiConverter:
         self.grayscale_image = []
         self.pil_image = None
         self.output_file_name = None
+        self.coloured = False
 
     def load_image(self, file_name):
         try:
@@ -50,7 +79,7 @@ class AsciiConverter:
                 self._norm_size()
         except FileNotFoundError:
             return False, 'not found!'
-        except PIL.UnidentifiedImageError:
+        except UnidentifiedImageError:
             return False, 'in the wrong format!'
         except BaseException as e:
             raise e
@@ -64,28 +93,34 @@ class AsciiConverter:
         folders = self.file_name.split('/')[:-1]
         path = '/'.join(folders)
         short_name = self.file_name.split('/')[-1].split('.')[0]
-        file_name = path + '/' + short_name + '.txt'
+        coloured = '_coloured' if self.coloured else ''
+        file_name = path + '/' + short_name + coloured + '.txt'
         i = 1
         while os.path.exists(file_name):
-            file_name = path + '/' + short_name + f'({i})' + '.txt'
+            file_name = path + '/' + short_name + f'({i})' + coloured + '.txt'
             i += 1
         self.output_file_name = file_name
 
     def convert(self):
         self._set_output_file_name()
+        self.symbol_height = min(self.pixel_height, self.symbol_height)
+        self.symbol_width = min(self.pixel_width, self.symbol_width)
         with Image.open(self.file_name) as im:
             im.load()
             self.pil_image = im
             self.image_array = np.asarray(self.pil_image)
             self._reduce_image_array()
-        self._convert_to_grayscale()
-        with open(self.output_file_name, 'w') as f:
+        if not self.coloured:
+            self._convert_to_grayscale()
+        with open(self.output_file_name, 'w', encoding='ANSI') as f:
             for line in range(self.symbol_height):
-                text_line = []
                 for column in range(self.symbol_width):
-                    symbol = get_symbol_by_brightness(self.grayscale_image[line][column])
-                    text_line.append(symbol)
-                f.write(''.join(text_line) + '\n')
+                    if self.coloured:
+                        symbol = get_coloured_symbol(self.image_array[line][column])
+                    else:
+                        symbol = get_symbol_by_brightness(self.grayscale_image[line][column])
+                    f.write(symbol)
+                f.write('\n')
         # os.startfile('/'.join(self.output_file_name.split('/')[:-1]) + '/')
         os.startfile(self.output_file_name)
 
