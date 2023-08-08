@@ -1,3 +1,4 @@
+import tkinter
 import tkinter as ttk
 from tkinter import filedialog as fd
 import ascii_art
@@ -40,11 +41,13 @@ class Application:
         set_screen(self.root)
         self._make_pict_size_frame()
         self.file_name = None
+        self.coloured = ttk.BooleanVar()
         self._make_file_open_frame()
         self._load_label = None
         self._convert_text_label = None
         self._set_load_result_text('Image is not selected')
         self.last_entry_type = None
+        self._set_colour_checking()
 
     def _set_load_result_text(self, text, colour=BLACK):
         if self._load_label is not None:
@@ -63,6 +66,11 @@ class Application:
         text = f'Successfully converted to {short_name}'
         self._convert_text_label = ttk.Label(self.root, text=text, bg=WHITE, font=40)
         self._convert_text_label.place(relx=0.15, rely=0.75, relwidth=0.7, relheight=0.1)
+
+    def _set_colour_checking(self):
+        button = ttk.Checkbutton(self.root, text='Coloured', variable=self.coloured,
+                                 onvalue=True, offvalue=False, bg=WHITE)
+        button.place(relx=0.15, rely=0.85, relwidth=0.7, relheight=0.1)
 
     def _update_width_and_height(self):
         set_symbols_count(self.height_entry, str(self.converter.symbol_height))
@@ -89,6 +97,9 @@ class Application:
                 self._set_load_result_text(f'Image {short_name} {message}', RED)
 
     def _convert(self):
+        if self.file_name is None:
+            return
+        self.converter.coloured = self.coloured.get()
         self.converter.symbol_width = int(self.width_entry.get())
         self.converter.symbol_height = int(self.height_entry.get())
         self.converter.convert()

@@ -179,8 +179,8 @@ class AsciiConverter:
 
     def _norm_size(self):
         scale = min(self.symbol_height, self.symbol_width) // COMMON_SYMBOL_COUNT
-        if scale < 1 and scale != 0:
-            self.symbol_width = self.symbol_width // scale * 15 // 8
+        if scale > 1 and scale != 0:
+            self.symbol_width = self.symbol_width * 15 // scale // 8
             self.symbol_height = self.symbol_height // scale
 
 
