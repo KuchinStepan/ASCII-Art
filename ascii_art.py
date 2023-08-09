@@ -43,7 +43,7 @@ def get_ansi_colour_by_pixel(pixel):
 def get_coloured_symbol(pixel):
     symbol = get_symbol_by_brightness(grayscale_pixel(pixel))
     colour = get_ansi_colour_by_pixel(pixel)
-    return colour + symbol
+    return colour + colorama.Back.WHITE + symbol
 
 
 def _are_same_scales(pixel_width, pixel_height, symbol_width, symbol_height):
@@ -83,7 +83,7 @@ class AsciiConverter:
         except UnidentifiedImageError:
             raise LoadImageError('in the wrong format!')
         except BaseException as e:
-            raise LoadImageError('has unknown error: {e}')
+            raise LoadImageError(f'has unknown error: {e}')
         else:
             if len(self.image_array) == 0 or len(self.image_array[0]) == 0 or len(self.image_array[0][0]) < 3:
                 raise LoadImageError('in the wrong format!')
@@ -122,7 +122,8 @@ class AsciiConverter:
                     f.write(symbol)
                 f.write('\n')
         # os.startfile('/'.join(self.output_file_name.split('/')[:-1]) + '/')
-        os.startfile(self.output_file_name)
+        if not self.coloured:
+            os.startfile(self.output_file_name)
 
     def _reduce_image_array(self):
         if _are_same_scales(self.pixel_width, self.pixel_height, self.symbol_width, self.symbol_height):
