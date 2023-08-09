@@ -1,4 +1,5 @@
 from PIL import Image, UnidentifiedImageError
+from load_image_error import LoadImageError
 import colorama
 import numpy as np
 import os
@@ -78,16 +79,15 @@ class AsciiConverter:
                     self.pixel_width = self.symbol_width
                 self._norm_size()
         except FileNotFoundError:
-            return False, 'not found!'
+            raise LoadImageError('not found!')
         except UnidentifiedImageError:
-            return False, 'in the wrong format!'
+            raise LoadImageError('in the wrong format!')
         except BaseException as e:
-            raise e
+            raise LoadImageError('has unknown error: {e}')
         else:
             if len(self.image_array) == 0 or len(self.image_array[0]) == 0 or len(self.image_array[0][0]) < 3:
-                return False, 'in the wrong format!'
+                raise LoadImageError('in the wrong format!')
             self.file_name = file_name
-            return True, 'successful'
 
     def _set_output_file_name(self):
         folders = self.file_name.split('/')[:-1]

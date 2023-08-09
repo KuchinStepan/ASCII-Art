@@ -1,6 +1,6 @@
-import tkinter
 import tkinter as ttk
 from tkinter import filedialog as fd
+from load_image_error import LoadImageError
 import ascii_art
 
 
@@ -85,16 +85,18 @@ class Application:
         file_name = fd.askopenfilename(title='Select image', filetypes=wanted_files)
         if file_name != '':
             self.file_name = file_name
-            successful, message = self.converter.load_image(file_name)
             short_name = file_name.split('/')[-1]
             if len(short_name) > 15:
                 short_name = short_name[:13] + '...'
-            if successful:
+            try:
+                self.converter.load_image(file_name)
+            except LoadImageError as e:
+                self._set_load_result_text(f'Image {short_name} {e.message}', RED)
+                self.file_name = None
+            else:
                 self._set_load_result_text(f'Image {short_name} selected')
                 self._update_width_and_height()
                 self._set_convert_result_text('')
-            else:
-                self._set_load_result_text(f'Image {short_name} {message}', RED)
 
     def _convert(self):
         if self.file_name is None:
